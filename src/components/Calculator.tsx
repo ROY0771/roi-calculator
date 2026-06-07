@@ -483,12 +483,8 @@ const Field: React.FC<{
   <div className="flex items-center justify-between py-1.5">
     <label className="text-sm text-gray-600 min-w-[180px]">{label}</label>
     <div className="flex items-center gap-1">
-      <div className="relative flex items-center">
-        {prefix && <span className="absolute left-3 text-xs text-gray-400 pointer-events-none z-10">{prefix}</span>}
-        <div className={`${prefix ? 'pl-8' : ''}`}>
-          {children}
-        </div>
-      </div>
+      {children}
+      {prefix && <span className="text-xs text-gray-400">{prefix}</span>}
       {suffix && <span className="text-xs text-gray-400">{suffix}</span>}
     </div>
   </div>
