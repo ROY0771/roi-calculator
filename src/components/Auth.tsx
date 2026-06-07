@@ -25,6 +25,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
+  const [isAdminAuth, setIsAdminAuth] = useState(false);
   
   // Form states
   const [name, setName] = useState('');
@@ -166,7 +167,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
       return;
     }
     setError('');
-    // No need to set a state, just show the admin panel
+    setIsAdminAuth(true);
   };
 
   const updateUserStatus = async (userId: string, status: 'approved' | 'revoked') => {
@@ -205,7 +206,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         {/* Mode Tabs */}
         <div className="flex gap-2 mb-6">
           <button
-            onClick={() => { setMode('login'); setError(''); }}
+            onClick={() => { setMode('login'); setError(''); setIsAdminAuth(false); }}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
               mode === 'login' ? 'bg-mesda-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
@@ -214,7 +215,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
             Login
           </button>
           <button
-            onClick={() => { setMode('register'); setError(''); }}
+            onClick={() => { setMode('register'); setError(''); setIsAdminAuth(false); }}
             className={`flex-1 py-2 px-4 rounded-lg font-medium transition ${
               mode === 'register' ? 'bg-mesda-primary text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
             }`}
@@ -337,7 +338,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
               </div>
             ) : null}
             
-            {users.length > 0 || adminPassword === ADMIN_PASSWORD ? (
+            {isAdminAuth ? (
               <div>
                 <div className="flex items-center gap-2 mb-4">
                   <Users size={20} className="text-mesda-primary" />
