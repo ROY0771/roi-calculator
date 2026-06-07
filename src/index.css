@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --mesda-primary: #A5CC31;
+  --mesda-dark: #7BA51D;
+  --mesda-light: #C4D860;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%);
+  min-height: 100vh;
+}
+
+.mesda-header {
+  background: linear-gradient(135deg, var(--mesda-primary) 0%, var(--mesda-dark) 100%);
+}
+
+.mesda-btn {
+  @apply bg-mesda-primary hover:bg-mesda-dark text-white font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+}
+
+.mesda-btn-secondary {
+  @apply bg-gray-200 hover:bg-gray-300 text-gray-800 font-semibold py-2 px-4 rounded-lg transition-all duration-200;
+}
+
+.mesda-input {
+  @apply border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-mesda-primary focus:border-transparent;
+}
+
+.mesda-card {
+  @apply bg-white rounded-xl shadow-lg p-6;
+}
+
+.tab-active {
+  @apply bg-mesda-primary text-white;
+}
+
+.tab-inactive {
+  @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+}
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block;
+  }
+}
