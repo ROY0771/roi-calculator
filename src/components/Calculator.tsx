@@ -1,7 +1,47 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useCallback } from 'react';
 import { useCalculatorStore, Currency, FuelMethod, FuelUnit, Territory } from '../store/calculatorStore';
 import { getTranslation } from '../i18n/translations';
 import { Settings, DollarSign, TrendingUp, Download, Mail } from 'lucide-react';
+
+// Numeric input: only digits & decimal, blank when empty, allows leading 0
+const NumInput: React.FC<{ value: number; onChange: (v: number) => void; className?: string; decimalPlaces?: number }> = ({ value, onChange, className, decimalPlaces }) => {
+  const [raw, setRaw] = useState<string>('');
+  const [focused, setFocused] = useState(false);
+
+  const display = focused ? raw : (value === 0 && !raw ? '' : (decimalPlaces != null ? value.toFixed(decimalPlaces) : String(value)));
+
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    // Only allow digits and one decimal point
+    if (v === '' || /^\d*\.?\d*$/.test(v)) {
+      setRaw(v);
+      const num = parseFloat(v);
+      onChange(isNaN(num) ? 0 : num);
+    }
+  }, [onChange]);
+
+  const handleFocus = useCallback(() => {
+    setFocused(true);
+    setRaw(decimalPlaces != null ? value.toFixed(decimalPlaces) : String(value));
+  }, [value, decimalPlaces]);
+
+  const handleBlur = useCallback(() => {
+    setFocused(false);
+    setRaw('');
+  }, []);
+
+  return (
+    <input
+      type="text"
+      inputMode="decimal"
+      className={className}
+      value={display}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+    />
+  );
+};
 
 interface CalculatorProps {
   onExportPDF: () => void;
@@ -214,16 +254,16 @@ const Calculator: React.FC<CalculatorProps> = ({ onExportPDF, onSendEmail }) => 
               <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Machine Settings')}</h2>
               <div className="space-y-3">
                 <Field label={t('Machine Purchase Price')} prefix={sym}>
-                  <input type="number" value={purchasePrice || ''} onChange={e => setPurchasePrice(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={purchasePrice} onChange={setPurchasePrice} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Machine Life (Years)')} suffix={language==='zh'?'年':'yrs'}>
-                  <input type="number" value={machineLife || ''} onChange={e => setMachineLife(e.target.value ? +e.target.value : 1)} className="mesda-input text-right w-full" />
+                  <NumInput value={machineLife} onChange={v => setMachineLife(v||1)} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Residual Value (%)')} suffix="%">
-                  <input type="number" value={residualValue ? (residualValue*100).toFixed(0) : ''} onChange={e => setResidualValue(e.target.value ? +e.target.value/100 : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={residualValue*100} onChange={v => setResidualValue(v/100)} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Insurance (% of purchase / yr)')} suffix="%">
-                  <input type="number" value={insuranceRate ? (insuranceRate*100).toFixed(1) : ''} onChange={e => setInsuranceRate(e.target.value ? +e.target.value/100 : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={insuranceRate*100} onChange={v => setInsuranceRate(v/100)} className="mesda-input text-right w-full" decimalPlaces={1} />
                 </Field>
               </div>
             </div>
@@ -258,25 +298,25 @@ const Calculator: React.FC<CalculatorProps> = ({ onExportPDF, onSendEmail }) => 
               <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Operation Settings')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                 <Field label={t('Annual Utilisation (hrs)')} suffix={language==='zh'?'小时/年':'hrs/yr'}>
-                  <input type="number" value={annualHours || ''} onChange={e => setAnnualHours(e.target.value ? +e.target.value : 1)} className="mesda-input text-right w-full" />
+                  <NumInput value={annualHours} onChange={v => setAnnualHours(v||1)} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Throughput (tph)')} suffix="TPH">
-                  <input type="number" value={tph || ''} onChange={e => setTph(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={tph} onChange={setTph} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Selling Price / ton')} prefix={sym}>
-                  <input type="number" value={sellingPrice || ''} onChange={e => setSellingPrice(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={sellingPrice} onChange={setSellingPrice} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Load Factor')} suffix="%">
-                  <input type="number" value={loadFactor ? (loadFactor*100).toFixed(0) : ''} onChange={e => setLoadFactor(Math.min(e.target.value ? +e.target.value/100 : 0, 1))} className="mesda-input text-right w-full" max="100" />
+                  <NumInput value={loadFactor*100} onChange={v => setLoadFactor(Math.min(v/100, 1))} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Wear Cost / ton')} prefix={sym}>
-                  <input type="number" value={wearCost || ''} onChange={e => setWearCost(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={wearCost} onChange={setWearCost} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Labour Cost / hr')} prefix={sym}>
-                  <input type="number" value={labourCost || ''} onChange={e => setLabourCost(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={labourCost} onChange={setLabourCost} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Other Opex / hr')} prefix={sym}>
-                  <input type="number" value={otherOpex || ''} onChange={e => setOtherOpex(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                  <NumInput value={otherOpex} onChange={setOtherOpex} className="mesda-input text-right w-full" />
                 </Field>
               </div>
             </div>
@@ -303,10 +343,10 @@ const Calculator: React.FC<CalculatorProps> = ({ onExportPDF, onSendEmail }) => 
                       </select>
                     </div>
                     <Field label={t('Base Fuel Use / hr @100% load')} suffix={fuelUnit+'/hr'}>
-                      <input type="number" value={baseFuelUse || ''} onChange={e => setBaseFuelUse(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                      <NumInput value={baseFuelUse} onChange={setBaseFuelUse} className="mesda-input text-right w-full" />
                     </Field>
                     <Field label={t('Fuel Cost / unit')} prefix={sym+'/'+fuelUnit}>
-                      <input type="number" value={fuelCostPerUnit || ''} onChange={e => setFuelCostPerUnit(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                      <NumInput value={fuelCostPerUnit} onChange={setFuelCostPerUnit} className="mesda-input text-right w-full" />
                     </Field>
                     <Field label={t('Fuel Use / hr')} suffix={fuelUnit+'/hr'}>
                       <span className="font-mono text-gray-800">{actualFuelUse.toFixed(1)}</span>
@@ -318,7 +358,7 @@ const Calculator: React.FC<CalculatorProps> = ({ onExportPDF, onSendEmail }) => 
                 )}
                 {fuelMethod === 'Direct cost/hr' && (
                   <Field label={t('Manual Direct Fuel Cost / hr')} prefix={sym+'/hr'}>
-                    <input type="number" value={manualDirectFuelCost || ''} onChange={e => setManualDirectFuelCost(e.target.value ? +e.target.value : 0)} className="mesda-input text-right w-full" />
+                    <NumInput value={manualDirectFuelCost} onChange={setManualDirectFuelCost} className="mesda-input text-right w-full" />
                   </Field>
                 )}
               </div>
@@ -329,19 +369,16 @@ const Calculator: React.FC<CalculatorProps> = ({ onExportPDF, onSendEmail }) => 
               <h2 className="text-lg font-bold text-gray-800 mb-4">{t('Service & Maintenance Inputs')}</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3">
                 <Field label={t('Service Interval (hrs)')} suffix={language==='zh'?'小时':'hrs'}>
-                  <input type="number" value={serviceInterval} onChange={e => setServiceInterval(+e.target.value||1)} className="mesda-input text-right w-full" />
+                  <NumInput value={serviceInterval} onChange={v => setServiceInterval(v||1)} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Service Cost per event')} prefix={sym}>
-                  <input type="number" value={serviceCost} onChange={e => setServiceCost(+e.target.value||0)} className="mesda-input text-right w-full" />
+                  <NumInput value={serviceCost} onChange={setServiceCost} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Hydraulic Oil Interval (hrs)')} suffix={language==='zh'?'小时':'hrs'}>
-                  <input type="number" value={hydraulicInterval} onChange={e => setHydraulicInterval(+e.target.value||1)} className="mesda-input text-right w-full" />
+                  <NumInput value={hydraulicInterval} onChange={v => setHydraulicInterval(v||1)} className="mesda-input text-right w-full" />
                 </Field>
                 <Field label={t('Hydraulic Oil Change Cost')} prefix={sym}>
-                  <input type="number" value={hydraulicCost} onChange={e => setHydraulicCost(+e.target.value||0)} className="mesda-input text-right w-full" />
-                </Field>
-                <Field label={t('Damage/Repairs Allowance')} prefix={sym+'/'+(language==='zh'?'小时':'hr')}>
-                  <span className="font-mono text-gray-800">{damageAllowancePerHr.toFixed(2)}</span>
+                  <NumInput value={hydraulicCost} onChange={setHydraulicCost} className="mesda-input text-right w-full" />
                 </Field>
               </div>
             </div>
@@ -360,7 +397,6 @@ const Calculator: React.FC<CalculatorProps> = ({ onExportPDF, onSendEmail }) => 
               <Row label={t('Labour Cost / yr')} value={fmt(annualLabourCost)} />
               <Row label={t('Other Opex / yr')} value={fmt(annualOtherOpex)} />
               <Row label={t('Service & Maintenance / yr')} value={fmt(annualServiceMaintenance)} />
-              <Row label={t('Damage/Repairs Allowance / yr')} value={fmt(annualDamageAllowance)} />
               <Row label={t('Operating Margin / yr')} value={fmt(operatingMargin)} highlight />
               <div className="border-t-2 border-gray-200 my-2" />
               <Row label={t('Residual Value (end of life)')} value={fmt(residualValueAmount)} />
@@ -447,8 +483,12 @@ const Field: React.FC<{
   <div className="flex items-center justify-between py-1.5">
     <label className="text-sm text-gray-600 min-w-[180px]">{label}</label>
     <div className="flex items-center gap-1">
-      {prefix && <span className="text-xs text-gray-400">{prefix}</span>}
-      {children}
+      <div className="relative flex items-center">
+        {prefix && <span className="absolute left-3 text-xs text-gray-400 pointer-events-none z-10">{prefix}</span>}
+        <div className={`${prefix ? 'pl-8' : ''}`}>
+          {children}
+        </div>
+      </div>
       {suffix && <span className="text-xs text-gray-400">{suffix}</span>}
     </div>
   </div>
