@@ -320,7 +320,7 @@ const Auth: React.FC<AuthProps> = ({ onLogin }) => {
         {/* Admin Panel */}
         {mode === 'admin' && (
           <div>
-            {users.length === 0 ? (
+            {!isAdminAuth ? (
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">Admin Password</label>
                 <div className="flex gap-2">
