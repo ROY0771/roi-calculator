@@ -8,7 +8,7 @@ const NumInput: React.FC<{ value: number; onChange: (v: number) => void; classNa
   const [raw, setRaw] = useState<string>('');
   const [focused, setFocused] = useState(false);
 
-  const display = focused ? raw : (value === 0 && !raw ? '' : (decimalPlaces != null ? value.toFixed(decimalPlaces) : String(value)));
+  const display = focused ? raw : (value === 0 ? '' : (decimalPlaces != null ? value.toFixed(decimalPlaces) : String(value)));
 
   const handleChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -22,7 +22,7 @@ const NumInput: React.FC<{ value: number; onChange: (v: number) => void; classNa
 
   const handleFocus = useCallback(() => {
     setFocused(true);
-    setRaw(decimalPlaces != null ? value.toFixed(decimalPlaces) : String(value));
+    setRaw(value === 0 ? '' : (decimalPlaces != null ? value.toFixed(decimalPlaces) : String(value)));
   }, [value, decimalPlaces]);
 
   const handleBlur = useCallback(() => {
